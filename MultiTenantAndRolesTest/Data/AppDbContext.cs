@@ -16,8 +16,6 @@ namespace MultiTenantAndRolesTest.Data
         public DbSet<Permission> Permission { get; set; }
         public DbSet<RolePermission> RolePermission { get; set; }
         public DbSet<UserRole> UserRole { get; set; }
-        public DbSet<UserBlacklist> UserBlacklist { get; set; }
-        public DbSet<JwtBlacklist> JwtBlacklist { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -94,19 +92,6 @@ namespace MultiTenantAndRolesTest.Data
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasIndex(e => new { e.RoleId, e.PermissionId }).IsUnique();
-            });
-            builder.Entity<UserBlacklist>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.UserId).IsRequired();
-
-                entity.HasIndex(e => e.UserId).IsUnique();
-            });
-            builder.Entity<JwtBlacklist>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.token).IsRequired();
-                entity.Property(e => e.expires).IsRequired();
             });
 
         }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MultiTenantAndRolesTest.Data;
 using MultiTenantAndRolesTest.DTOs;
 using MultiTenantAndRolesTest.Interfaces;
@@ -21,14 +22,21 @@ namespace MultiTenantAndRolesTest.Repositories
         {
             string errorString = "";
 
-            if (password.Length < 12) //length test
+            //length test
+            if (password.Length < 12) 
                 errorString += " Password Must Be 12 Charecters Long";
-            if (!Regex.IsMatch(password, @"\d"))// checks for min 1 digit
+
+            // checks for min 1 digit
+            if (!Regex.IsMatch(password, @"\d"))
                 errorString += " Password must have 1 digit";
-            if (!Regex.IsMatch(password, @"[A-Z]"))//checks for 1 upper case
+
+            //checks for 1 upper case
+            if (!Regex.IsMatch(password, @"[A-Z]"))
                 errorString += " Password must have 1 uppercase";
-            if (!Regex.IsMatch(password, @"[@#$£!()]"))// checks for 1 special chatecter
-                errorString += " Password must have 1 special charecter e.g. '@','#','$','£','!','(' or ')'";
+
+            // checks for 1 special chatecter
+            if (!Regex.IsMatch(password, @"[@#$£!_]"))
+                errorString += " Password must have 1 special charecter e.g. '@','#','$','£','!' or '_'";
             return errorString;
         }
 
@@ -43,13 +51,13 @@ namespace MultiTenantAndRolesTest.Repositories
         {
             return BCrypt.Net.BCrypt.Verify(password, hash);
         }
-        public async Task<List<Role>> GetRolesAsync(User user)
+        public async Task<List<Role>> UserRolesGetAsync(User user)
         {
             var roles = await _context.UserRole.Where(r => r.UserId == user.Id).Select(ur => ur.Role).ToListAsync();
             return roles;
 
         }
-        public async Task<UserRegisterLoginSuccessDto> CreateUserAsync(UserRegisterDto user)
+        public async Task<UserRegisterLoginSuccessDto> UserCreateAsync(UserRegisterDto user)
         {
             try
             {
@@ -131,19 +139,98 @@ namespace MultiTenantAndRolesTest.Repositories
         }
 
 
-        public async Task<User> GetOneUserByEmailAsync(string userEmail)
+        public async Task<User> UserGetByEmailAsync(string userEmail)
         {
             var user = await _context.User.FirstOrDefaultAsync(u => u.Email == userEmail);
             if (user == null)
             {
                 throw new Exception("not a valid user");
             }
-            var roles = await _context.UserRole.Where(row => row.UserId == user.Id).Select(row => row.Role).ToListAsync();
-            if(roles == null)
-            {
-                throw new Exception("no valid roles");
-            }
             return user;
         }
+        public async Task<bool> UserDelete(int userId)
+        {
+            var user = await _context.User.FindAsync(userId);
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
+
+             _context.User.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+        public async Task<UserUpdateSuccess> UserUpdateAsync(int userId, UserUpdateDto userUpdatedInfo)
+        {
+            var user = await _context.User.FindAsync(userId);
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
+
+            user.FirstName = userUpdatedInfo.FirstName ?? user.FirstName;
+            user.LastName = userUpdatedInfo.LastName ?? user.LastName;
+            user.Email = userUpdatedInfo.Email ?? user.Email;
+            user.PhoneNumber = userUpdatedInfo.PhoneNumber ?? user.PhoneNumber;
+
+            if (!string.IsNullOrEmpty(userUpdatedInfo.Password))
+            {
+                var passCheck = await CheckPasswordPolicy(userUpdatedInfo.Password);
+                if (passCheck.Length > 0) throw new Exception(passCheck);
+                user.PasswordHash = await HashPassword(userUpdatedInfo.Password);
+            }
+
+            if (userUpdatedInfo.Roles != null && userUpdatedInfo.Roles.Any())
+            {
+                var userRolesToRemove = await _context.UserRole.Where(ur => ur.UserId == userId).ToListAsync();
+                _context.UserRole.RemoveRange(userRolesToRemove);
+
+                foreach (var role in userUpdatedInfo.Roles)
+                {
+                    var existingRole = await _context.Role.FirstOrDefaultAsync(r => r.Name == role.Name);
+                    if (existingRole == null)
+                    {
+                        throw new ArgumentException($"Role '{role.Name}' does not exist.");
+                    }
+                    var userRole = new UserRole
+                    {
+                        UserId = userId,
+                        RoleId = existingRole.Id
+                    };
+                    _context.UserRole.Add(userRole);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return new UserUpdateSuccess
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Roles = userUpdatedInfo.Roles,
+            };
+        }
+
+        public async Task<UserUpdateSuccess> UserGetByIdAsync(int userId)
+        {
+            var user = await _context.User.FindAsync(userId);
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
+            var roles = await UserRolesGetAsync(user);
+            return new UserUpdateSuccess
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Roles = roles
+            };
+        }
+
     }
 }

@@ -24,24 +24,24 @@ namespace MultiTenantAndRolesTest.Controllers
 
         [HttpPost("login")]
         [SwaggerOperation("Login")]
-        [SwaggerResponse(200, "OK", typeof(IEnumerable<UserLoginSuccessDto>))]
+        [SwaggerResponse(200, "OK", typeof(IEnumerable<UserRegisterLoginSuccessDto>))]
         [ValidateModelState]
         public async Task<IActionResult> Login([FromBody] UserLoginDto loginDto)
         {
             try
             {
-                var user = await _userManager.GetOneUserByEmailAsync(loginDto.Email);;
+                var user = await _userManager.UserGetByEmailAsync(loginDto.Email);;
                 if (user == null) throw new Exception("no user found");
 
                 var matchPassword = await _userManager.VerifyPassword(loginDto.Password, user.PasswordHash);
                 if (matchPassword == false) throw new Exception("password does not match");
 
-                var userRoles = await _userManager.GetRolesAsync(user);
+                var userRoles = await _userManager.UserRolesGetAsync(user);
 
 
                 if (user != null)
                 {
-                    return Ok(new UserLoginSuccessDto
+                    return Ok(new UserRegisterLoginSuccessDto
                     {
                         FirstName = user.FirstName,
                         LastName = user.LastName,
@@ -53,7 +53,7 @@ namespace MultiTenantAndRolesTest.Controllers
                 }
                 else
                 {
-                    return BadRequest("Erro logging in, contact admin");
+                    return BadRequest("Error logging in, contact admin");
                 }
             }
             catch (Exception ex)

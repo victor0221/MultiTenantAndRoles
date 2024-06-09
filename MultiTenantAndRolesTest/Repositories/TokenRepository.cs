@@ -26,7 +26,7 @@ namespace MultiTenantAndRolesTest.Repositories
                 new Claim(JwtRegisteredClaimNames.GivenName, user.FirstName),
             };
 
-            var roles = await _userManager.GetRolesAsync(user);
+            var roles = await _userManager.UserRolesGetAsync(user);
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role.ToString()));

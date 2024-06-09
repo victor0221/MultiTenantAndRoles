@@ -8,8 +8,11 @@ namespace MultiTenantAndRolesTest.Interfaces
         Task<string> HashPassword(string password);
         Task<bool> VerifyPassword(string password, string hash);
         Task<string> CheckPasswordPolicy(string password);
-        Task<List<Role>> GetRolesAsync(User user);
-        Task<UserRegisterLoginSuccessDto> CreateUserAsync(UserRegisterDto user);
-        Task<User> GetOneUserByEmailAsync(string userEmail);
+        Task<List<Role>> UserRolesGetAsync(User user);
+        Task<UserRegisterLoginSuccessDto> UserCreateAsync(UserRegisterDto user);
+        Task<User> UserGetByEmailAsync(string userEmail);
+        Task<bool> UserDelete(int userId);
+        Task<UserUpdateSuccess> UserUpdateAsync(int userId, UserUpdateDto userDto);
+        Task<UserUpdateSuccess> UserGetByIdAsync(int userId);
     }
 }

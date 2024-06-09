@@ -27,8 +27,8 @@ namespace MultiTenantAndRolesTest.Controllers
             _token = token;
         }
 
-        [HttpPost("user/register")]
-        [SwaggerOperation("Register a new user")]
+        [HttpPost("user")]
+        [SwaggerOperation("User Create")]
         [SwaggerResponse(200, "OK", typeof(IEnumerable<UserRegisterLoginSuccessDto>))]
         [ValidateModelState]
         public async Task<IActionResult> UserRegister([FromBody] UserRegisterDto userDto)
@@ -36,9 +36,8 @@ namespace MultiTenantAndRolesTest.Controllers
 
             try
             {
-                //var user = await _userManager.GetOneUserByEmailAsync(userDto.Email);
-                var createdUser = await _userManager.CreateUserAsync(userDto);
-                var user = await _userManager.GetOneUserByEmailAsync(createdUser.Email);
+                var createdUser = await _userManager.UserCreateAsync(userDto);
+                var user = await _userManager.UserGetByEmailAsync(createdUser.Email);
 
                 return Ok(new UserRegisterLoginSuccessDto
                 {
@@ -47,9 +46,80 @@ namespace MultiTenantAndRolesTest.Controllers
                     Email = createdUser.Email,
                     PhoneNumber = createdUser.PhoneNumber,
                     Token = await _token.CreateToken(user),
-                    Roles = createdUser.Roles,
-
+                    Roles = createdUser.Roles
                 });
+            }
+            catch (Exception ex)
+            {
+                if (ex != null)
+                {
+                    return BadRequest(ex.Message);
+                }
+                else
+                {
+                    throw new Exception("error creating role permissions");
+                }
+            }
+        }
+        [HttpPut("user/{userId:int}")]
+        [SwaggerOperation("User Update")]
+        [SwaggerResponse(200, "OK", typeof(IEnumerable<UserRegisterLoginSuccessDto>))]
+        [ValidateModelState]
+        public async Task<IActionResult> UserUpdate([FromRoute] int userId,[FromBody] UserUpdateDto userDto)
+        {
+
+            try
+            {
+                var updatedUser = await _userManager.UserUpdateAsync(userId, userDto);
+                return Ok(updatedUser);
+            }
+            catch (Exception ex)
+            {
+                if (ex != null)
+                {
+                    return BadRequest(ex.Message);
+                }
+                else
+                {
+                    throw new Exception("error creating role permissions");
+                }
+            }
+        }
+        [HttpDelete("user/{userId:int}")]
+        [SwaggerOperation("User Delete")]
+        [SwaggerResponse(200, "OK", typeof(IEnumerable<bool>))]
+        [ValidateModelState]
+        public async Task<IActionResult> UserDelete([FromRoute] int userId)
+        {
+
+            try
+            {
+                var deletedUserBool = await _userManager.UserDelete(userId);
+                return Ok(deletedUserBool);
+            }
+            catch (Exception ex)
+            {
+                if (ex != null)
+                {
+                    return BadRequest(ex.Message);
+                }
+                else
+                {
+                    throw new Exception("error creating role permissions");
+                }
+            }
+        }
+        [HttpGet("user/{userId:int}")]
+        [SwaggerOperation("User Get One")]
+        [SwaggerResponse(200, "OK", typeof(IEnumerable<UserUpdateSuccess>))]
+        [ValidateModelState]
+        public async Task<IActionResult> UserGetOne([FromRoute] int userId)
+        {
+
+            try
+            {
+                var user = await _userManager.UserGetByIdAsync(userId);
+                return Ok(user);
             }
             catch (Exception ex)
             {

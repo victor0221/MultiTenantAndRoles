@@ -44,6 +44,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddSwaggerGen(option =>
 {
+    option.EnableAnnotations();
     option.SwaggerDoc("v1", new OpenApiInfo { Title = "MultiTenantTest", Version = "v1" });
     option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
