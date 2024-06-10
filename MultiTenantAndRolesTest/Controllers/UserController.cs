@@ -1,11 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using MultiTenantAndRolesTest.DTOs;
-using MultiTenantAndRolesTest.DTOs.Admin;
 using MultiTenantAndRolesTest.Helpers;
 using MultiTenantAndRolesTest.Interfaces;
-using MultiTenantAndRolesTest.Models;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace MultiTenantAndRolesTest.Controllers

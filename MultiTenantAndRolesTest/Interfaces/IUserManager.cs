@@ -14,5 +14,6 @@ namespace MultiTenantAndRolesTest.Interfaces
         Task<bool> UserDelete(int userId);
         Task<UserUpdateSuccess> UserUpdateAsync(int userId, UserUpdateDto userDto);
         Task<UserUpdateSuccess> UserGetByIdAsync(int userId);
+        Task<List<UserUpdateSuccess>> UserGetAllAsync(int page, int pageSize, string? sort, string? order, string? searchTerm, int[]? roles);
     }
 }

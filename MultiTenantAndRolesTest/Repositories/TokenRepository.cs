@@ -29,7 +29,7 @@ namespace MultiTenantAndRolesTest.Repositories
             var roles = await _userManager.UserRolesGetAsync(user);
             foreach (var role in roles)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
+                claims.Add(new Claim(ClaimTypes.Role, role.NormalisedName));
             }
 
             var encryption = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);

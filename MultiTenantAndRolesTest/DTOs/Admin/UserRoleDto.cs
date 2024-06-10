@@ -1,5 +1,4 @@
-﻿using MultiTenantAndRolesTest.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace MultiTenantAndRolesTest.DTOs.Admin
 {

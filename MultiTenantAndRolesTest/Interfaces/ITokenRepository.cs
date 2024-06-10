@@ -1,5 +1,4 @@
-﻿using MultiTenantAndRolesTest.DTOs;
-using MultiTenantAndRolesTest.Models;
+﻿using MultiTenantAndRolesTest.Models;
 
 namespace MultiTenantAndRolesTest.Interfaces
 {

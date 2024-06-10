@@ -1,8 +1,6 @@
 ﻿using BCrypt.Net;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using MultiTenantAndRolesTest.Data;
 using MultiTenantAndRolesTest.DTOs;
 using MultiTenantAndRolesTest.Interfaces;
@@ -71,10 +69,10 @@ namespace MultiTenantAndRolesTest.Repositories
                 var roleIds = new List<int>();
                 foreach (var role in user.Roles)
                 {
-                    var existingRole = await _context.Role.FirstOrDefaultAsync(r => r.Name == role.Name);
+                    var existingRole = await _context.Role.FirstOrDefaultAsync(r => r.NormalisedName == role.NormalisedName);
                     if (existingRole == null)
                     {
-                        throw new ArgumentException($"Role '{role.Name}' does not exist.");
+                        throw new ArgumentException($"Role '{role.NormalisedName}' does not exist.");
                     }
                     roleIds.Add(existingRole.Id);
                 }
@@ -103,6 +101,7 @@ namespace MultiTenantAndRolesTest.Repositories
                     .Where(u => u.Email == newUser.Email)
                     .Select(u => new UserRegisterLoginSuccessDto
                     {
+                        Id = u.Id,
                         FirstName = u.FirstName,
                         LastName = u.LastName,
                         Email = u.Email,
@@ -188,10 +187,10 @@ namespace MultiTenantAndRolesTest.Repositories
 
                 foreach (var role in userUpdatedInfo.Roles)
                 {
-                    var existingRole = await _context.Role.FirstOrDefaultAsync(r => r.Name == role.Name);
+                    var existingRole = await _context.Role.FirstOrDefaultAsync(r => r.NormalisedName == role.NormalisedName);
                     if (existingRole == null)
                     {
-                        throw new ArgumentException($"Role '{role.Name}' does not exist.");
+                        throw new ArgumentException($"Role '{role.NormalisedName}' does not exist.");
                     }
                     var userRole = new UserRole
                     {
@@ -206,6 +205,7 @@ namespace MultiTenantAndRolesTest.Repositories
 
             return new UserUpdateSuccess
             {
+                Id = user.Id,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
@@ -224,6 +224,7 @@ namespace MultiTenantAndRolesTest.Repositories
             var roles = await UserRolesGetAsync(user);
             return new UserUpdateSuccess
             {
+                Id = user.Id,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
@@ -231,6 +232,64 @@ namespace MultiTenantAndRolesTest.Repositories
                 Roles = roles
             };
         }
+        public async Task<List<UserUpdateSuccess>> UserGetAllAsync(int page, int pageSize, string? sort, string? order, string? searchTerm, int[]? roles)
+        {
+            page = page == 0 ? 1 : page;
+            pageSize = pageSize == 0 ? 25 : pageSize;
+            var query = _context.User.AsQueryable();
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(u => u.FirstName.Contains(searchTerm) ||
+                                         u.LastName.Contains(searchTerm) ||
+                                         u.Email.Contains(searchTerm));
+            }
+            if (roles != null && roles.Length > 0)
+            {
+                query = query.Where(u => _context.UserRole.Any(ur => ur.UserId == u.Id && roles.Contains(ur.RoleId)));
+            }
 
+            if (!string.IsNullOrEmpty(sort) && !string.IsNullOrEmpty(order))
+            {
+                if (order.Equals("asc", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = sort switch
+                    {
+                        "FirstName" => query.OrderBy(u => u.FirstName),
+                        "LastName" => query.OrderBy(u => u.LastName),
+                        "Email" => query.OrderBy(u => u.Email),
+                        _ => query.OrderBy(u => u.Id)
+                    };
+                }
+                else if (order.Equals("desc", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = sort switch
+                    {
+                        "FirstName" => query.OrderByDescending(u => u.FirstName),
+                        "LastName" => query.OrderByDescending(u => u.LastName),
+                        "Email" => query.OrderByDescending(u => u.Email),
+                        _ => query.OrderByDescending(u => u.Id)
+                    };
+                }
+            }
+
+            var users = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            var userUpdateSuccessList = new List<UserUpdateSuccess>();
+            foreach (var user in users)
+            {
+                var userRoles = await UserRolesGetAsync(user);
+                userUpdateSuccessList.Add(new UserUpdateSuccess
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                    Roles = userRoles
+                });
+            }
+
+            return userUpdateSuccessList;
+        }
     }
 }

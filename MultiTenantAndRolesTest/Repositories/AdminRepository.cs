@@ -4,7 +4,6 @@ using MultiTenantAndRolesTest.Data;
 using MultiTenantAndRolesTest.DTOs.Admin;
 using MultiTenantAndRolesTest.Interfaces;
 using MultiTenantAndRolesTest.Models;
-using System.Data;
 
 namespace MultiTenantAndRolesTest.Repositories
 {

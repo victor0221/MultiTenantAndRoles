@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MultiTenantAndRolesTest.Models;
-using System.Reflection.Emit;
 
 namespace MultiTenantAndRolesTest.Data
 {
@@ -19,19 +18,6 @@ namespace MultiTenantAndRolesTest.Data
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            //List<Role> roles = new List<Role>()
-            //{
-            //    new Role
-            //    {
-            //        Name="Admin",
-            //    },
-            //    new Role
-            //    {
-            //        Name="User",
-            //    },
-            //};
-            //builder.Entity<Role>().HasData(roles);
-
             base.OnModelCreating(builder);
 
             builder.Entity<User>(entity =>
@@ -50,6 +36,7 @@ namespace MultiTenantAndRolesTest.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.NormalisedName).IsRequired().HasMaxLength(100);
 
                 entity.HasIndex(e => e.Name).IsUnique();
             });
@@ -74,6 +61,7 @@ namespace MultiTenantAndRolesTest.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.NormalisedName).IsRequired().HasMaxLength(100);
 
                 entity.HasIndex(e => e.Name).IsUnique();
             });

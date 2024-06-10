@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MultiTenantAndRolesTest.DTOs;
 using MultiTenantAndRolesTest.DTOs.Admin;
@@ -8,13 +6,12 @@ using MultiTenantAndRolesTest.Helpers;
 using MultiTenantAndRolesTest.Interfaces;
 using MultiTenantAndRolesTest.Models;
 using Swashbuckle.AspNetCore.Annotations;
-using System;
 
 namespace MultiTenantAndRolesTest.Controllers
 {
     [Route("admin")]
     [Authorize]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Admin")]
     public class AdminController : ControllerBase
     {
         private readonly IAdminRepository _repo;
@@ -27,6 +24,30 @@ namespace MultiTenantAndRolesTest.Controllers
             _token = token;
         }
 
+        [HttpGet("user")]
+        [SwaggerOperation("User Get All")]
+        [SwaggerResponse(200, "OK", typeof(IEnumerable<UserUpdateSuccess>))]
+        [ValidateModelState]
+        public async Task<IActionResult> UserGetAll([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? sort, [FromQuery] string? order, [FromQuery] string? searchTerm, [FromQuery] int[]? roles)
+        {
+
+            try
+            {
+                var users = await _userManager.UserGetAllAsync(page, pageSize, sort, order, searchTerm, roles);
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                if (ex != null)
+                {
+                    return BadRequest(ex.Message);
+                }
+                else
+                {
+                    throw new Exception("error creating role permissions");
+                }
+            }
+        }
         [HttpPost("user")]
         [SwaggerOperation("User Create")]
         [SwaggerResponse(200, "OK", typeof(IEnumerable<UserRegisterLoginSuccessDto>))]
