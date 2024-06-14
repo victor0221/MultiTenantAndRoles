@@ -39,6 +39,7 @@ namespace MultiTenantAndRolesTest.Controllers
                 {
                     return Ok(new UserRegisterLoginSuccessDto
                     {
+                        Id = user.Id,
                         FirstName = user.FirstName,
                         LastName = user.LastName,
                         Email = user.Email,

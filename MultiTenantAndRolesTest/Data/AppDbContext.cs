@@ -10,6 +10,13 @@ namespace MultiTenantAndRolesTest.Data
 
         }
 
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
+            var connectionString = "Data Source = (localdb)\\mssqllocaldb; Initial Catalog = CustomAuth; Integrated Security = True; Encrypt = False;";
+            optionsBuilder.UseSqlServer(connectionString); // Or any other database provider you are using
+        }
+
         public DbSet<User> User { get; set; }
         public DbSet<Role> Role { get; set; }
         public DbSet<Permission> Permission { get; set; }
