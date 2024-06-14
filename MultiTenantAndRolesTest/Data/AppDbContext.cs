@@ -1,19 +1,22 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MultiTenantAndRolesTest.Models;
+using MultiTenantAndRolesTest.Repositories;
 
 namespace MultiTenantAndRolesTest.Data
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions dbContextOptions) : base(dbContextOptions)
+        private readonly TenantProvider _tenantProvider;
+        public AppDbContext(DbContextOptions dbContextOptions, TenantProvider tenantProvider) : base(dbContextOptions)
         {
-
+            _tenantProvider = tenantProvider;
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
-            var connectionString = "Data Source = (localdb)\\mssqllocaldb; Initial Catalog = CustomAuth; Integrated Security = True; Encrypt = False;";
+            //var connectionString = "Data Source = (localdb)\\mssqllocaldb; Initial Catalog = CustomAuth; Integrated Security = True; Encrypt = False;";
+            var connectionString = _tenantProvider.GetConnectionString();
             optionsBuilder.UseSqlServer(connectionString); // Or any other database provider you are using
         }
 

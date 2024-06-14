@@ -76,6 +76,13 @@ builder.Services.AddSwaggerGen(option =>
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IUserManager, UserManager>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+builder.Services.AddScoped<TenantProvider>();
+
+
+builder.Services.Configure<TenantConnectionStrings>(options =>
+    builder.Configuration.GetSection(nameof(TenantConnectionStrings)).Bind(options)
+);
+
 
 var app = builder.Build();
 
